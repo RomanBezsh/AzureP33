@@ -10,35 +10,42 @@
 <h2 class="display-5">Перекладач</h2>
 
 
-<div class="row">
-    <div class="col col-4 offset-2">
+<form class="d-flex" method="get">
+    <div class="flex-grow-1">
         <label for="source-textarea" class="form-label">Текст, що буде перекладвтися</label>
-        <select class="form-select" aria-label="Мова орігінала">
-            <option selected value="1">English</option>
-            <option value="2">German</option>
-            <option value="3">Italian</option>
-            <option value="1">Українська</option>
+        <select class="form-select" aria-label="Мова орігінала" name="lang-from">
+            <option selected value="English">English</option>
+            <option value="German">German</option>
+            <option value="Italian">Italian</option>
+            <option value="Українська">Українська</option>
         </select>
         <div class="mb-3">
-
-            <textarea class="form-control" id="source-textarea" rows="3"></textarea>
+            <textarea name="original-text" class="form-control" id="source-textarea" rows="3"></textarea>
         </div>
     </div>
-    <div class="col col-4">
+    <div class="flex-grow-1"></div>
+    <div class="flex-grow-0 m-3">
+        <button class="btn btn-outline-danger" type="button">
+            <i class="bi bi-arrow-left-right"></i>
+        </button>
+        <br />
+        <button class="btn btn-outline-success" type="submit" name="action-button" value="translate">
+            <i class="bi bi-translate"></i>
+        </button>
+    </div>
+    <div class="flex-grow-1"></div>
+    <div class="flex-grow-1">
         <label for="translation-textarea" class="form-label">Результат перекладу</label>
-        <select class="form-select" aria-label="Мова перекладу">
-            <option selected value="1">Українська</option>
-            <option value="1">English</option>
-            <option value="2">German</option>
-            <option value="3">Italian</option>
+        <select class="form-select" aria-label="Мова перекладу" name="lang-to">
+            <option selected value="Українська">Українська</option>
+            <option value="English">English</option>
+            <option value="German">German</option>
+            <option value="Italian">Italian</option>
         </select>
         <div class="mb-3">
-
-            <textarea disabled readonly class="form-control" id="translation-textarea"
-                      rows="3">Зразок перекладу</textarea>
+            <textarea disabled readonly class="form-control" id="translation-textarea" rows="3">Зразок перекладу</textarea>
         </div>
     </div>
-
-</div>
+</form>
 
 

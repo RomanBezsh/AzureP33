@@ -1,4 +1,5 @@
 ﻿using AzureP33.Models;
+using AzureP33.Models.Home;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -13,9 +14,15 @@ namespace AzureP33.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(HomeIndexFormModel? formModel)
         {
-            return View();
+            HomeIndexViewModel viewModel = new()
+            {
+                PageTitle = "Перекладач",
+                FormModel = formModel?.Action == null ? null : formModel,
+            };
+
+            return View(viewModel);
         }
 
         public IActionResult Privacy()
