@@ -16,6 +16,15 @@ namespace AzureP33.Controllers
 
         public IActionResult Index(HomeIndexFormModel? formModel)
         {
+            if (!ModelState.IsValid)
+            {
+                var error = ModelState["original-text"]?.Errors.FirstOrDefault();
+                if (error != null)
+                {
+                    ViewBag.OriginalTextError = error.ErrorMessage;
+                }
+            }
+
             HomeIndexViewModel viewModel = new()
             {
                 PageTitle = "Перекладач",
