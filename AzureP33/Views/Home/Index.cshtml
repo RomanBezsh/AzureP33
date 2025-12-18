@@ -20,7 +20,7 @@
                 string langFromSelectedKey = Model.FormModel?.LangFrom ?? "uk";
             }
             @foreach (var item in Model.LanguagesResponce.Translation)
-            {`
+            {
                 string content = (item.Value.Name != item.Value.NativeName) ?
                     item.Value.Name + " (" + item.Value.NativeName + ")"
                     : item.Value.Name;
@@ -61,7 +61,7 @@
         <label for="translation-textarea" class="form-label">Результат перекладу</label>
         <select class="form-select" aria-label="Мова перекладу" name="lang-to">
             @{
-                string langToSelectedKey = Model.FormModel?.LangFrom ?? "en";
+                string langToSelectedKey = Model.FormModel?.LangTo ?? "en";
             }
             @foreach (var item in Model.LanguagesResponce.Translation)
             {
