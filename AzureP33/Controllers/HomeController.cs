@@ -1,7 +1,9 @@
 ﻿using AzureP33.Models;
 using AzureP33.Models.Home;
+using AzureP33.Models.Orm;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace AzureP33.Controllers
 {
@@ -14,7 +16,7 @@ namespace AzureP33.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index(HomeIndexFormModel? formModel)
+        public async Task<IActionResult> Index(HomeIndexFormModel? formModel)
         {
             if (!ModelState.IsValid)
             {
@@ -25,6 +27,17 @@ namespace AzureP33.Controllers
                 }
             }
 
+            using HttpClient client = new();
+
+            var response = JsonSerializer.Deserialize<LanguagesResponce>(
+                await client.GetStringAsync(
+                    @"https://api.translator.azure.cn/languages?api-version=3.0"
+                )
+            );
+            if (response == null )
+            {
+                throw new Exception("LanguagesResponce got NULL result");
+            }
             HomeIndexViewModel viewModel = new()
             {
                 PageTitle = "Перекладач",
