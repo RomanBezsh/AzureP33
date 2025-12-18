@@ -16,10 +16,25 @@
     <div class="flex-grow-1">
         <label for="source-textarea" class="form-label">Текст, що буде перекладвтися</label>
         <select class="form-select" aria-label="Мова орігінала" name="lang-from">
-            <option selected value="English">English</option>
-            <option value="German">German</option>
-            <option value="Italian">Italian</option>
-            <option value="Українська">Українська</option>
+            @{
+                string langFromSelectedKey = Model.FormModel?.LangFrom ?? "uk";
+            }
+            @foreach (var item in Model.LanguagesResponce.Translation)
+            {`
+                string content = (item.Value.Name != item.Value.NativeName) ?
+                    item.Value.Name + " (" + item.Value.NativeName + ")"
+                    : item.Value.Name;
+                if (langFromSelectedKey == item.Key)
+                {
+                    
+                    <option selected value="@item.Key">@content</option>
+                }
+                else 
+                {
+                    <option value="@item.Key">@content</option>
+                }
+            }
+
         </select>
         <div class="mb-3">
             <textarea name="original-text" 
@@ -45,10 +60,24 @@
     <div class="flex-grow-1">
         <label for="translation-textarea" class="form-label">Результат перекладу</label>
         <select class="form-select" aria-label="Мова перекладу" name="lang-to">
-            <option selected value="Українська">Українська</option>
-            <option value="English">English</option>
-            <option value="German">German</option>
-            <option value="Italian">Italian</option>
+            @{
+                string langToSelectedKey = Model.FormModel?.LangFrom ?? "en";
+            }
+            @foreach (var item in Model.LanguagesResponce.Translation)
+            {
+                string content = (item.Value.Name != item.Value.NativeName) ?
+                    item.Value.Name + " (" + item.Value.NativeName + ")"
+                    : item.Value.Name;
+                if (langToSelectedKey == item.Key)
+                {
+
+                    <option selected value="@item.Key">@content</option>
+                }
+                else
+                {
+                    <option value="@item.Key">@content</option>
+                }
+            }
         </select>
         <div class="mb-3">
             <textarea disabled readonly class="form-control" id="translation-textarea" rows="3">Зразок перекладу</textarea>

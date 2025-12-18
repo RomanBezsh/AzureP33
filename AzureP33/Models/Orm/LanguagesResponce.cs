@@ -1,7 +1,10 @@
-﻿namespace AzureP33.Models.Orm
+﻿using System.Text.Json.Serialization;
+
+namespace AzureP33.Models.Orm
 {
     public class LanguagesResponce
     {
-        public Dictionary<string, LangData> Translations { get; set; } = new();
+        [JsonPropertyName("translation")]
+        public Dictionary<string, LangData> Translation { get; set; } = new();
     }
 }

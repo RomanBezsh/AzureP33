@@ -42,6 +42,7 @@ namespace AzureP33.Controllers
             {
                 PageTitle = "Перекладач",
                 FormModel = formModel?.Action == null ? null : formModel,
+                LanguagesResponce = response
             };
 
             return View(viewModel);
