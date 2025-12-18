@@ -11,4 +11,5 @@
 
 
 - **Спроба перекласти текст**  
-  ![Скріншот: переклад тексту](https://github.com/user-attachments/assets/b7d8d4f6-7a0f-42e0-bd3c-dbd61ae7ecfc)
+  <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2efefa87-8309-4018-961a-927facd8de43" />
+
