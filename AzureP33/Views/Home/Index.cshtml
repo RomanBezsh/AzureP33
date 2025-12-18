@@ -1,8 +1,9 @@
 ﻿﻿
 @{
     ViewData["Title"] = "Home Page";
+    ﻿
 }
-
+@model AzureP33.Models.Home.HomeIndexViewModel
 
 <div class="text-center">
     <h1 class="display-4">Хмарні технології і використання Microsoft Azure під час розробки додатків</h1>
@@ -26,7 +27,7 @@
                       id="source-textarea" 
                       rows="3"
                       data-val="true" 
-                      data-val-required="@(ViewBag.OriginalTextError)"></textarea>
+                      data-val-required="@(ViewBag.OriginalTextError)">@Model.FormModel?.OriginalText</textarea>
             <span class="text-danger" data-valmsg-for="original-text" data-valmsg-replace="true"></span>
         </div>
     </div>
