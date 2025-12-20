@@ -24,3 +24,8 @@
   <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e2ca61db-f7bb-4542-91fc-1b267661d5f1" />
 - Після
   <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f31d2424-b532-4502-9788-803e3e9d9b4c" />
+
+
+
+### Attention!
+  After clonning rename `azuresettings_sample.json` to `azuresettings.json` and change password data
