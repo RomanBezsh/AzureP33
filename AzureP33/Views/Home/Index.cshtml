@@ -1,7 +1,6 @@
-﻿﻿
-@{
+﻿@{
     ViewData["Title"] = "Home Page";
-    ﻿
+    
 }
 @model AzureP33.Models.Home.HomeIndexViewModel
 
@@ -42,7 +41,9 @@
                       id="source-textarea" 
                       rows="3"
                       data-val="true" 
-                      data-val-required="@(ViewBag.OriginalTextError)">@Model.FormModel?.OriginalText</textarea>
+                      data-val-required="@(ViewBag.OriginalTextError ?? "Текст для перекладу обов' язковий")"
+                      data-val-minlength="Текст має містити щонайменше 2 символи"
+                      data-val-minlength-min="2">@Model.FormModel?.OriginalText</textarea>
             <span class="text-danger" data-valmsg-for="original-text" data-valmsg-replace="true"></span>
         </div>
     </div>
@@ -85,14 +86,14 @@
     </div>
 </form>
 
-
+    @ViewData["result"]
 <h2 class="display-6">Розміщення парольної інформації у проектах, що публікуються</h2>
 <p>
     За умов коли в проєкті є API-ключі, паролі до БД або токену доступу до
     сторонніх сервісів виникає питання забезпечення їх секретності.
     Зазвичай проблема вирішується розділенням проєктних файлів на секретні,
     які вилучені з репозиторію, та їх копії, які мають правильну структуру,
-    але замінену парольну інформацію.
+    але заминену парольну інформацію.
 </p>
 <ul>
     <li>Вносимо до файлу <code>.gitignore</code> запис щодо файлів з 
@@ -108,12 +109,6 @@
         Складаємо 
     </li>
 </ul>    
-
-
-
-
-
-
 
 @section Scripts {
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>

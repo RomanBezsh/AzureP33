@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AzureP33.Models.Home
 {
@@ -12,6 +12,7 @@ namespace AzureP33.Models.Home
         public string LangTo { get; set; } = null!;
 
         [Required(ErrorMessage = "Текст для перекладу обов'язковий")]
+        [MinLength(2, ErrorMessage = "Текст має містити щонайменше 2 символи")]
         [FromQuery(Name = "original-text")]
         public string OriginalText { get; set; } = null!;
 
