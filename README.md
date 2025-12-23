@@ -25,6 +25,22 @@
 - Після
   <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f31d2424-b532-4502-9788-803e3e9d9b4c" />
 
+### Завдання 3
+- **Валідація даних форми перекладача, довжина текста (не коротша за 2 символи)**  
+  <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/548f8846-e769-497e-a982-59fed8dcd063" />
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### Attention!
