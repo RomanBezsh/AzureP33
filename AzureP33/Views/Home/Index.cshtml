@@ -1,9 +1,9 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-    
-}
-@model AzureP33.Models.Home.HomeIndexViewModel
+﻿@using AzureP33.Models.Orm
 
+@model AzureP33.Models.Home.HomeIndexViewModel
+@{
+    ViewData["Title"] = "Перекладач";
+}
 <div class="text-center">
     <h1 class="display-4">Хмарні технології і використання Microsoft Azure під час розробки додатків</h1>
 </div>
@@ -18,7 +18,7 @@
             @{
                 string langFromSelectedKey = Model.FormModel?.LangFrom ?? "uk";
             }
-            @foreach (var item in Model.LanguagesResponce!.Translation)
+            @foreach (var item in Model.LanguagesResponce.Translation)
             {
                 string content = (item.Value.Name != item.Value.NativeName) ?
                     item.Value.Name + " (" + item.Value.NativeName + ")"
@@ -43,7 +43,7 @@
                       data-val="true" 
                       data-val-required="@(ViewBag.OriginalTextError ?? "Текст для перекладу обов' язковий")"
                       data-val-minlength="Текст має містити щонайменше 2 символи"
-                      data-val-minlength-min="2">@Model.FormModel?.OriginalText</textarea>
+                      data-val-minlength-min="2">@(Model.FormModel?.OriginalText ?? "Вітаю")</textarea>
             <span class="text-danger" data-valmsg-for="original-text" data-valmsg-replace="true"></span>
         </div>
     </div>
@@ -64,7 +64,7 @@
             @{
                 string langToSelectedKey = Model.FormModel?.LangTo ?? "en";
             }
-            @foreach (var item in Model.LanguagesResponce.Translation)
+            @foreach (var item in new Dictionary<string, LangData>(Model.LanguagesResponce.Translation))
             {
                 string content = (item.Value.Name != item.Value.NativeName) ?
                     item.Value.Name + " (" + item.Value.NativeName + ")"
@@ -81,12 +81,18 @@
             }
         </select>
         <div class="mb-3">
-            <textarea disabled readonly class="form-control" id="translation-textarea" rows="3">Зразок перекладу</textarea>
+            <textarea disabled readonly class="form-control" id="translation-textarea" rows="3">@(Model.Items?[0].Translations?[0].Text)</textarea>
         </div>
     </div>
 </form>
 
-    @ViewData["result"]
+@if (Model.ErrorResponce != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @Model.ErrorResponce.Error.Message (@Model.ErrorResponce.Error.Code)
+    </div>
+}
+
 <h2 class="display-6">Розміщення парольної інформації у проектах, що публікуються</h2>
 <p>
     За умов коли в проєкті є API-ключі, паролі до БД або токену доступу до

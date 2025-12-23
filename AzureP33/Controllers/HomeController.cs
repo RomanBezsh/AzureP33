@@ -83,9 +83,12 @@ namespace AzureP33.Controllers
                     string result = await response.Content.ReadAsStringAsync();
                     if (result[0] == '[')
                     {
-
+                        viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponceItem>>(result);
                     }
-
+                    else
+                    {
+                        viewModel.ErrorResponce = JsonSerializer.Deserialize<TranslatorErrorResponce>(result);
+                    }
                     ViewData["result"] = result; // [{ "translations":[{ "text":"Greetings","to":"en"}]}]
                 }
 
