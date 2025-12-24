@@ -69,12 +69,10 @@ namespace AzureP33.Controllers
                 using (var client2 = new HttpClient())
                 using (var request = new HttpRequestMessage())
                 {
-                    // Build the request.
                     request.Method = HttpMethod.Post;
                     request.RequestUri = new Uri(endpoint + route);
                     request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
                     request.Headers.Add("Ocp-Apim-Subscription-Key", key);
-                    // location required if you're using a multi-service or regional (not global) resource.
                     request.Headers.Add("Ocp-Apim-Subscription-Region", location);
 
                     // Send the request and get response.

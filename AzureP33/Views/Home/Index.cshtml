@@ -18,7 +18,7 @@
             @{
                 string langFromSelectedKey = Model.FormModel?.LangFrom ?? "uk";
             }
-            @foreach (var item in Model.LanguagesResponce.Translation)
+            @foreach (var item in Model.LanguagesResponce!.Translation)
             {
                 string content = (item.Value.Name != item.Value.NativeName) ?
                     item.Value.Name + " (" + item.Value.NativeName + ")"
