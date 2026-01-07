@@ -32,7 +32,7 @@ namespace AzureP33.Controllers
 
             using HttpClient client = new();
 
-            var resp = JsonSerializer.Deserialize<LanguagesResponce>(
+            var resp = JsonSerializer.Deserialize<LanguagesResponse>(
                 await client.GetStringAsync(
                     @"https://api.translator.azure.cn/languages?api-version=3.0"
                 )
@@ -45,7 +45,7 @@ namespace AzureP33.Controllers
             {
                 PageTitle = "Перекладач",
                 FormModel = formModel?.Action == null ? null : formModel,
-                LanguagesResponce = resp
+                LanguagesResponse = resp,
             };
             if (formModel?.Action == "translate")
             {
@@ -79,13 +79,13 @@ namespace AzureP33.Controllers
                     HttpResponseMessage response = await client2.SendAsync(request).ConfigureAwait(false);
                     // Read response as a string.
                     string result = await response.Content.ReadAsStringAsync();
-                    if (result[0] == '[')
+                    if (!string.IsNullOrWhiteSpace(result) && result.TrimStart().StartsWith("["))
                     {
-                        viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponceItem>>(result);
+                        viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponseItem>>(result);
                     }
                     else
                     {
-                        viewModel.ErrorResponce = JsonSerializer.Deserialize<TranslatorErrorResponce>(result);
+                        viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
                     }
                     ViewData["result"] = result; // [{ "translations":[{ "text":"Greetings","to":"en"}]}]
                 }

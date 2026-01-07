@@ -2,9 +2,9 @@
 
 namespace AzureP33.Models.Orm
 {
-    public class LanguagesResponce
+    public class LanguagesResponse
     {
         [JsonPropertyName("translation")]
-        public Dictionary<string, LangData> Translation { get; set; } = new();
+        public Dictionary<string, LangData> Translations { get; set; } = new();
     }
 }

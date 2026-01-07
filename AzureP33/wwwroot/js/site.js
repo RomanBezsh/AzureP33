@@ -2,15 +2,40 @@
 // for details on configuring this project to bundle and minify static web assets.
 
 // Write your JavaScript code.
-const btnSwapLanguages = document.getElementById("btn-swap-languages");
+document.addEventListener("DOMContentLoaded", () => {
 
-btnSwapLanguages.addEventListener("click", () => swapLanguages());
+    const btnSwap = document.getElementById("btn-swap-languages");
+    if (!btnSwap) return;
 
-const swapLanguages = () => {
-    const langFrom = document.getElementsByName("lang-from")[0];
-    const langTo = document.getElementsByName("lang-to")[0];
+    btnSwap.addEventListener("click", () => {
 
-    const temp = langFrom.value;
-    langFrom.value = langTo.value;
-    langTo.value = temp;
-};
+        const fromSelect = document.getElementById('lang-from');
+        const toSelect = document.getElementById('lang-to');
+        const source = document.getElementById('source-textarea');
+        const translation = document.getElementById('translation-textarea');
+        const form = btnSwap.closest('form');
+        const submitBtn = form.querySelector('button[name="action-button"]');     
+
+        if (!fromSelect || !toSelect || !source || !translation || !form) return;
+
+        const fromLang = fromSelect.value;
+        const toLang = toSelect.value;
+        const translatedText = translation.value.trim();
+
+        if (!translatedText) {
+            fromSelect.value = toLang;
+            toSelect.value = fromLang;
+            return;
+        }
+
+        fromSelect.value = toLang;
+        toSelect.value = fromLang;
+
+        source.value = translatedText;
+
+        translation.value = "";
+
+        form.requestSubmit(submitBtn);
+    });
+});
+

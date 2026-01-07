@@ -14,21 +14,21 @@
 <form class="d-flex" method="get">
     <div class="flex-grow-1">
         <label for="source-textarea" class="form-label">Текст, що буде перекладвтися</label>
-        <select class="form-select" aria-label="Мова орігінала" name="lang-from">
+        <select id="lang-from" class="form-select" aria-label="Мова орігінала" name="lang-from">
             @{
                 string langFromSelectedKey = Model.FormModel?.LangFrom ?? "uk";
             }
-            @foreach (var item in Model.LanguagesResponce!.Translation)
+            @foreach (var item in Model.LanguagesResponse!.Translations)
             {
                 string content = (item.Value.Name != item.Value.NativeName) ?
-                    item.Value.Name + " (" + item.Value.NativeName + ")"
-                    : item.Value.Name;
+                item.Value.Name + " (" + item.Value.NativeName + ")"
+                : item.Value.Name;
                 if (langFromSelectedKey == item.Key)
                 {
-                    
+
                     <option selected value="@item.Key">@content</option>
                 }
-                else 
+                else
                 {
                     <option value="@item.Key">@content</option>
                 }
@@ -36,11 +36,11 @@
 
         </select>
         <div class="mb-3">
-            <textarea name="original-text" 
-                      class="form-control" 
-                      id="source-textarea" 
+            <textarea name="original-text"
+                      class="form-control"
+                      id="source-textarea"
                       rows="3"
-                      data-val="true" 
+                      data-val="true"
                       data-val-required="@(ViewBag.OriginalTextError ?? "Текст для перекладу обов' язковий")"
                       data-val-minlength="Текст має містити щонайменше 2 символи"
                       data-val-minlength-min="2">@(Model.FormModel?.OriginalText ?? "Вітаю")</textarea>
@@ -60,15 +60,15 @@
     <div class="flex-grow-1"></div>
     <div class="flex-grow-1">
         <label for="translation-textarea" class="form-label">Результат перекладу</label>
-        <select class="form-select" aria-label="Мова перекладу" name="lang-to">
+        <select id="lang-to" class="form-select" aria-label="Мова перекладу" name="lang-to">
             @{
                 string langToSelectedKey = Model.FormModel?.LangTo ?? "en";
             }
-            @foreach (var item in new Dictionary<string, LangData>(Model.LanguagesResponce.Translation))
+            @foreach (var item in new Dictionary<string, LangData>(Model.LanguagesResponse.Translations))
             {
                 string content = (item.Value.Name != item.Value.NativeName) ?
-                    item.Value.Name + " (" + item.Value.NativeName + ")"
-                    : item.Value.Name;
+                item.Value.Name + " (" + item.Value.NativeName + ")"
+                : item.Value.Name;
                 if (langToSelectedKey == item.Key)
                 {
 
@@ -81,15 +81,15 @@
             }
         </select>
         <div class="mb-3">
-            <textarea disabled readonly class="form-control" id="translation-textarea" rows="3">@(Model.Items?[0].Translations?[0].Text)</textarea>
+            <textarea disabled readonly class="form-control" id="translation-textarea" rows="3">@(Model.Items?.FirstOrDefault()?.Translations?.FirstOrDefault()?.Text)</textarea>
         </div>
     </div>
 </form>
 
-@if (Model.ErrorResponce != null)
+@if (Model.ErrorResponse != null)
 {
     <div class="alert alert-danger" role="alert">
-        @Model.ErrorResponce.Error.Message (@Model.ErrorResponce.Error.Code)
+        @Model.ErrorResponse.Error.Message (@Model.ErrorResponse.Error.Code)
     </div>
 }
 
@@ -102,7 +102,8 @@
     але заминену парольну інформацію.
 </p>
 <ul>
-    <li>Вносимо до файлу <code>.gitignore</code> запис щодо файлів з 
+    <li>
+        Вносимо до файлу <code>.gitignore</code> запис щодо файлів з
         конфігурацією (наприклад, <code>azuresetting.json</code>)
     </li>
     <li>
@@ -112,11 +113,13 @@
         Створюємо копії файлів конфігурації, замінюємо в них чутливі дані
     </li>
     <li>
-        Складаємо 
+        Складаємо
     </li>
-</ul>    
+</ul>
 
 @section Scripts {
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+
 }
