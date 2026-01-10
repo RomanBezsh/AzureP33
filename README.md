@@ -30,6 +30,13 @@
   <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/548f8846-e769-497e-a982-59fed8dcd063" />
 
 
+### Завдання 4
+- **Зміна мов**  
+  ![2026-01-07-21-07-21](https://github.com/user-attachments/assets/46a4cbf6-2185-471a-8d8e-86eb68392c43)
+
+
+
+
 
 
 
