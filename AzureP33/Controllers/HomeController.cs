@@ -86,6 +86,7 @@ namespace AzureP33.Controllers
                     else
                     {
                         viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
+                        
                     }
                     ViewData["result"] = result; // [{ "translations":[{ "text":"Greetings","to":"en"}]}]
                 }
@@ -93,6 +94,64 @@ namespace AzureP33.Controllers
 
             }
 
+
+            if (formModel?.Action == "transliterate")
+            {
+                var sec = _configuration.GetSection("Azure").GetSection("Translator");
+                if (!sec.Exists())
+                {
+                    throw new InvalidOperationException("Missing configuration section: Azure:Translator");
+                }
+
+                string key = sec.GetValue<string>("Key") ?? throw new InvalidOperationException("Missing Key");
+                string endpoint = sec.GetValue<string>("Endpoint") ?? throw new InvalidOperationException("Missing Endpoint");
+                string location = sec.GetValue<string>("Location") ?? throw new InvalidOperationException("Missing Location");
+                string transliteratorPath = sec.GetValue<string>("TransliteratorPath") ?? "/transliterate";
+
+                string apiVersion = sec.GetValue<string>("ApiVersion") ?? "3.0";
+
+                LangData langData;
+
+                try 
+                {
+                    langData = resp.Transliterations[formModel.LangFrom];
+                    string fromScripst = langData.Scripts![0].Code!;
+                    string toScripst = langData.Scripts![0].ToScripts![0].Code!;
+                    string route = $"{transliteratorPath}?api-version={apiVersion}&language={formModel.LangFrom}&fromScripst={fromScripst}&toScripst={toScripst}";
+                    string textToTranslate = formModel.OriginalText;
+                    object[] body = new object[] { new { Text = textToTranslate } };
+                    var requestBody = JsonSerializer.Serialize(body);
+
+                    using (var client2 = new HttpClient())
+                    using (var request = new HttpRequestMessage())
+                    {
+                        request.Method = HttpMethod.Post;
+                        request.RequestUri = new Uri(endpoint + route);
+                        request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
+                        request.Headers.Add("Ocp-Apim-Subscription-Key", key);
+                        request.Headers.Add("Ocp-Apim-Subscription-Region", location);
+
+                        HttpResponseMessage response = await client2.SendAsync(request).ConfigureAwait(false);
+                        string result = await response.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrWhiteSpace(result) && result.TrimStart().StartsWith("["))
+                        {
+                            viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponseItem>>(result);
+                        }
+                        else
+                        {
+                            viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
+
+                        }
+                        ViewData["result"] = result; 
+                    }
+                }
+                catch (Exception ex) {  }
+
+
+                
+
+
+            }
             return View(viewModel);
         }
 

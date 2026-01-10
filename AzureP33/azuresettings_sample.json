@@ -5,6 +5,7 @@
       "Key": "",
       "Location": "",
       "TranslatorPath": "/translate",
+      "TransliteratorPath": "/transliterate",
       "ApiVersion": "3.0"
     }
   }
