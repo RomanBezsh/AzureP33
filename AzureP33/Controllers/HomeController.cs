@@ -1,12 +1,16 @@
 ﻿using AzureP33.Models;
 using AzureP33.Models.Home;
 using AzureP33.Models.Orm;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Data;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using static System.Net.WebRequestMethods;
 namespace AzureP33.Controllers
 {
     public class HomeController : Controller
@@ -49,36 +53,48 @@ namespace AzureP33.Controllers
             };
             if (formModel?.Action == "translate")
             {
-                var sec = _configuration.GetSection("Azure").GetSection("Translator");
-                if (!sec.Exists())
-                {
-                    throw new InvalidOperationException("Missing configuration section: Azure:Translator");
-                }
 
-                string key = sec.GetValue<string>("Key") ?? throw new InvalidOperationException("Missing Key");
-                string endpoint = sec.GetValue<string>("Endpoint") ?? throw new InvalidOperationException("Missing Endpoint");
-                string location = sec.GetValue<string>("Location") ?? throw new InvalidOperationException("Missing Location");
-                string translatorPath = sec.GetValue<string>("TranslatorPath") ?? "/translate";
-                string apiVersion = sec.GetValue<string>("ApiVersion") ?? "3.0";
-
-                string route = $"{translatorPath}?api-version={apiVersion}&from={formModel.LangFrom}&to={formModel.LangTo}";
+                string query = $"from={formModel.LangFrom}&to={formModel.LangTo}";
                 string textToTranslate = formModel.OriginalText;
                 object[] body = new object[] { new { Text = textToTranslate } };
                 var requestBody = JsonSerializer.Serialize(body);
 
-                using (var client2 = new HttpClient())
-                using (var request = new HttpRequestMessage())
-                {
-                    request.Method = HttpMethod.Post;
-                    request.RequestUri = new Uri(endpoint + route);
-                    request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
-                    request.Headers.Add("Ocp-Apim-Subscription-Key", key);
-                    request.Headers.Add("Ocp-Apim-Subscription-Region", location);
 
-                    // Send the request and get response.
-                    HttpResponseMessage response = await client2.SendAsync(request).ConfigureAwait(false);
-                    // Read response as a string.
-                    string result = await response.Content.ReadAsStringAsync();
+                string result = await RequestApi(query, requestBody, ApiMode.Translate);
+                if (!string.IsNullOrWhiteSpace(result) && result.TrimStart().StartsWith("["))
+                {
+                    viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponseItem>>(result);
+                }
+                else
+                {
+                    viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
+
+                }
+                ViewData["result"] = result;
+
+            }
+
+
+            if (formModel?.Action == "transliterate")
+            {
+                LangData langData;
+
+                try 
+                {
+                    langData = resp.Transliterations[formModel.LangFrom];
+                    string fromScript = langData.Scripts![0].Code!;
+                    string toScript = langData.Scripts![0].ToScripts![0].Code!;
+                    
+                    string query = $"language={formModel.LangFrom}&fromScript={fromScript}&toScript={toScript}";
+                    var requestBody = JsonSerializer.Serialize(new object[] 
+                    { 
+                        new 
+                        { 
+                            Text = formModel.OriginalText 
+                        } 
+                    });
+
+                    string result = await RequestApi(query, requestBody, ApiMode.Transliterate);
                     if (!string.IsNullOrWhiteSpace(result) && result.TrimStart().StartsWith("["))
                     {
                         viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponseItem>>(result);
@@ -86,74 +102,46 @@ namespace AzureP33.Controllers
                     else
                     {
                         viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
-                        
+
                     }
-                    ViewData["result"] = result; // [{ "translations":[{ "text":"Greetings","to":"en"}]}]
-                }
+                    ViewData["result"] = result;
 
-
-            }
-
-
-            if (formModel?.Action == "transliterate")
-            {
-                var sec = _configuration.GetSection("Azure").GetSection("Translator");
-                if (!sec.Exists())
-                {
-                    throw new InvalidOperationException("Missing configuration section: Azure:Translator");
-                }
-
-                string key = sec.GetValue<string>("Key") ?? throw new InvalidOperationException("Missing Key");
-                string endpoint = sec.GetValue<string>("Endpoint") ?? throw new InvalidOperationException("Missing Endpoint");
-                string location = sec.GetValue<string>("Location") ?? throw new InvalidOperationException("Missing Location");
-                string transliteratorPath = sec.GetValue<string>("TransliteratorPath") ?? "/transliterate";
-
-                string apiVersion = sec.GetValue<string>("ApiVersion") ?? "3.0";
-
-                LangData langData;
-
-                try 
-                {
-                    langData = resp.Transliterations[formModel.LangFrom];
-                    string fromScripst = langData.Scripts![0].Code!;
-                    string toScripst = langData.Scripts![0].ToScripts![0].Code!;
-                    string route = $"{transliteratorPath}?api-version={apiVersion}&language={formModel.LangFrom}&fromScripst={fromScripst}&toScripst={toScripst}";
-                    string textToTranslate = formModel.OriginalText;
-                    object[] body = new object[] { new { Text = textToTranslate } };
-                    var requestBody = JsonSerializer.Serialize(body);
-
-                    using (var client2 = new HttpClient())
-                    using (var request = new HttpRequestMessage())
-                    {
-                        request.Method = HttpMethod.Post;
-                        request.RequestUri = new Uri(endpoint + route);
-                        request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
-                        request.Headers.Add("Ocp-Apim-Subscription-Key", key);
-                        request.Headers.Add("Ocp-Apim-Subscription-Region", location);
-
-                        HttpResponseMessage response = await client2.SendAsync(request).ConfigureAwait(false);
-                        string result = await response.Content.ReadAsStringAsync();
-                        if (!string.IsNullOrWhiteSpace(result) && result.TrimStart().StartsWith("["))
-                        {
-                            viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponseItem>>(result);
-                        }
-                        else
-                        {
-                            viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
-
-                        }
-                        ViewData["result"] = result; 
-                    }
                 }
                 catch (Exception ex) {  }
-
-
-                
-
-
             }
             return View(viewModel);
         }
+
+        private async Task<string> RequestApi(string query, string body, ApiMode apiMode)
+        {
+            var sec = _configuration.GetSection("Azure").GetSection("Translator") ?? throw new InvalidOperationException("Connection error");
+
+            string key = sec.GetValue<string>("Key") ?? throw new InvalidOperationException("Missing Key");
+            string endpoint = sec.GetValue<string>("Endpoint") ?? throw new InvalidOperationException("Missing Endpoint");
+            string location = sec.GetValue<string>("Location") ?? throw new InvalidOperationException("Missing Location");
+            string apiVersion = sec.GetValue<string>("ApiVersion") ?? "3.0";
+            string apiPath = apiMode switch
+            {
+                ApiMode.Translate => sec.GetValue<string>("TranslatorPath"),
+                ApiMode.Transliterate => sec.GetValue<string>("TransliteratorPath"),
+                _ => null,
+            } ?? throw new Exception("apiMode error");
+            using (var client2 = new HttpClient())
+            using (var request = new HttpRequestMessage())
+            {
+                request.Method = HttpMethod.Post;
+                request.RequestUri = new Uri($"{endpoint}{apiPath}?api-version={apiVersion}&{query}");
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+                request.Headers.Add("Ocp-Apim-Subscription-Key", key);
+                request.Headers.Add("Ocp-Apim-Subscription-Region", location);
+                HttpResponseMessage response = await client2.SendAsync(request).ConfigureAwait(false);
+                string result = await response.Content.ReadAsStringAsync();
+                
+                return result;
+            }
+        }
+
+
 
         public IActionResult Privacy()
         {
@@ -165,5 +153,14 @@ namespace AzureP33.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+
+
     }
+    enum ApiMode
+    { 
+        Translate,
+        Transliterate
+    }
+
 }
