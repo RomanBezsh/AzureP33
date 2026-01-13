@@ -36,6 +36,12 @@
 
         </select>
         <div class="mb-3">
+            @{
+                string translit = ViewData["transliterationResult"] as string;
+                var originalTextValue = !string.IsNullOrWhiteSpace(translit)
+                ? translit.Trim()
+                : (Model.FormModel?.OriginalText ?? "Вітаю");  
+            }
             <textarea name="original-text"
                       class="form-control"
                       id="source-textarea"
@@ -43,7 +49,7 @@
                       data-val="true"
                       data-val-required="@(ViewBag.OriginalTextError ?? "Текст для перекладу обов' язковий")"
                       data-val-minlength="Текст має містити щонайменше 2 символи"
-                      data-val-minlength-min="2">@(Model.FormModel?.OriginalText ?? "Вітаю")</textarea>
+                      data-val-minlength-min="2">@originalTextValue</textarea>
             <span class="text-danger" data-valmsg-for="original-text" data-valmsg-replace="true"></span>
         </div>
     </div>

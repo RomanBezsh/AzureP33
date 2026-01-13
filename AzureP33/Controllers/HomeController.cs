@@ -79,35 +79,51 @@ namespace AzureP33.Controllers
             {
                 LangData langData;
 
-                try 
+                try
                 {
                     langData = resp.Transliterations[formModel.LangFrom];
                     string fromScript = langData.Scripts![0].Code!;
                     string toScript = langData.Scripts![0].ToScripts![0].Code!;
-                    
+
                     string query = $"language={formModel.LangFrom}&fromScript={fromScript}&toScript={toScript}";
-                    var requestBody = JsonSerializer.Serialize(new object[] 
-                    { 
-                        new 
-                        { 
-                            Text = formModel.OriginalText 
-                        } 
+                    var requestBody = JsonSerializer.Serialize(new object[]
+                    {
+                        new
+                        {
+                            Text = formModel.OriginalText
+                        }
                     });
 
                     string result = await RequestApi(query, requestBody, ApiMode.Transliterate);
-                    if (!string.IsNullOrWhiteSpace(result) && result.TrimStart().StartsWith("["))
-                    {
-                        viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponseItem>>(result);
-                    }
-                    else
-                    {
-                        viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
 
+                    string extracted = string.Empty;
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(result);
+                            if (doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0)
+                            {
+                                var first = doc.RootElement[0];
+                                if (first.TryGetProperty("text", out var textProp))
+                                {
+                                    extracted = textProp.GetString()?.Trim() ?? string.Empty;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Failed to parse transliteration JSON");
+                        }
                     }
-                    ViewData["result"] = result;
 
+                    // Save only the extracted text into ViewData
+                    ViewData["transliterationResult"] = extracted;
                 }
-                catch (Exception ex) {  }
+                catch (Exception ex)
+                {
+                    ViewData["transliterationResult"] = $"Error: {ex.Message}";
+                }
             }
             return View(viewModel);
         }
