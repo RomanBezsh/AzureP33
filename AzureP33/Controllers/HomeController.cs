@@ -10,6 +10,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Xml.Linq;
 using static System.Net.WebRequestMethods;
 namespace AzureP33.Controllers
 {
@@ -17,13 +18,15 @@ namespace AzureP33.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
+        private static LanguagesResponse? _languagesResponse;
+        
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
             _logger = logger;
             _configuration = configuration;
         }
 
-        public async Task<IActionResult> Index(HomeIndexFormModel? formModel)
+        public async Task<IActionResult> IndexAsync(HomeIndexFormModel? formModel)
         {
             if (!ModelState.IsValid)
             {
@@ -33,23 +36,12 @@ namespace AzureP33.Controllers
                     ViewBag.OriginalTextError = error.ErrorMessage;
                 }
             }
-
-            using HttpClient client = new();
-
-            var resp = JsonSerializer.Deserialize<LanguagesResponse>(
-                await client.GetStringAsync(
-                    @"https://api.translator.azure.cn/languages?api-version=3.0"
-                )
-            );
-            if (resp == null )
-            {
-                throw new Exception("LanguagesResponce got NULL result");
-            }
+            Task<LanguagesResponse> respTask = GetLanguagesAsync();
             HomeIndexViewModel viewModel = new()
             {
                 PageTitle = "Перекладач",
                 FormModel = formModel?.Action == null ? null : formModel,
-                LanguagesResponse = resp,
+                //LanguagesResponse = resp,
             };
             if (formModel?.Action == "translate")
             {
@@ -73,18 +65,24 @@ namespace AzureP33.Controllers
                 ViewData["result"] = result;
 
             }
+            ;
 
+            if (respTask == null)
+            {
+                throw new Exception("LanguagesResponce got NULL result");
+            }
 
-            if (formModel?.Action == "transliterate")
+            var resp = await respTask;
+
+            if (viewModel.Items != null)
             {
                 LangData langData;
 
                 try
                 {
-                    langData = resp.Transliterations[formModel.LangFrom];
+                    langData = resp.Transliterations[formModel!.LangFrom];
                     string fromScript = langData.Scripts![0].Code!;
                     string toScript = langData.Scripts![0].ToScripts![0].Code!;
-
                     string query = $"language={formModel.LangFrom}&fromScript={fromScript}&toScript={toScript}";
                     var requestBody = JsonSerializer.Serialize(new object[]
                     {
@@ -93,41 +91,55 @@ namespace AzureP33.Controllers
                             Text = formModel.OriginalText
                         }
                     });
-
                     string result = await RequestApi(query, requestBody, ApiMode.Transliterate);
+                    viewModel.FromTransliteration = JsonSerializer.Deserialize<List<TransliteratorResponseItem>>(result)![0];
 
-                    string extracted = string.Empty;
-                    if (!string.IsNullOrWhiteSpace(result))
+                    langData = resp.Transliterations[formModel!.LangTo];
+                    fromScript = langData.Scripts![0].Code!;
+                    toScript = langData.Scripts![0].ToScripts![0].Code!;
+                    query = $"language={formModel.LangFrom}&fromScript={fromScript}&toScript={toScript}";
+                    requestBody = JsonSerializer.Serialize(new object[]
                     {
-                        try
+                        new
                         {
-                            using var doc = JsonDocument.Parse(result);
-                            if (doc.RootElement.ValueKind == JsonValueKind.Array && doc.RootElement.GetArrayLength() > 0)
-                            {
-                                var first = doc.RootElement[0];
-                                if (first.TryGetProperty("text", out var textProp))
-                                {
-                                    extracted = textProp.GetString()?.Trim() ?? string.Empty;
-                                }
-                            }
+                            Text = formModel.OriginalText
                         }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Failed to parse transliteration JSON");
-                        }
-                    }
+                    });
+                    result = await RequestApi(query, requestBody, ApiMode.Transliterate);
+                    viewModel.ToTransliteration = JsonSerializer.Deserialize<List<TransliteratorResponseItem>>(result)![0];
 
-                    // Save only the extracted text into ViewData
-                    ViewData["transliterationResult"] = extracted;
+
                 }
                 catch (Exception ex)
                 {
                     ViewData["transliterationResult"] = $"Error: {ex.Message}";
                 }
             }
+
+
+            viewModel.LanguagesResponse = await respTask;
             return View(viewModel);
         }
 
+
+
+
+        private async Task<LanguagesResponse> GetLanguagesAsync()
+        {
+            if (_languagesResponse == null)
+            {
+                using HttpClient client = new();
+
+                _languagesResponse = JsonSerializer.Deserialize<LanguagesResponse>(
+                    await client.GetStringAsync(
+                        @"https://api.translator.azure.cn/languages?api-version=3.0"
+                    )
+                );
+
+                ArgumentNullException.ThrowIfNull(_languagesResponse, nameof(_languagesResponse));
+            }
+            return _languagesResponse;
+        }
         private async Task<string> RequestApi(string query, string body, ApiMode apiMode)
         {
             var sec = _configuration.GetSection("Azure").GetSection("Translator") ?? throw new InvalidOperationException("Connection error");
@@ -178,5 +190,4 @@ namespace AzureP33.Controllers
         Translate,
         Transliterate
     }
-
 }

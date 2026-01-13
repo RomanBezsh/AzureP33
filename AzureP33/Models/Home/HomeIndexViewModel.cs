@@ -9,8 +9,10 @@ namespace AzureP33.Models.Home
         public LanguagesResponse? LanguagesResponse { get; set; } = null!;
         public TranslatorErrorResponse? ErrorResponse { get; set; }
         public List<TranslatorResponseItem>? Items { get; set; }
-        public string? FromTransliteration { get; set; }
-        public string? ToTransliteration { get; set; }
+        public TransliteratorResponseItem? FromTransliteration { get; set; } 
+        public TransliteratorResponseItem? ToTransliteration { get; set; } 
+
+
     }
 }
 
