@@ -44,7 +44,7 @@
                       data-val-required="@(ViewBag.OriginalTextError ?? "Текст для перекладу обов' язковий")"
                       data-val-minlength="Текст має містити щонайменше 2 символи"
                       data-val-minlength-min="2">@Model.FormModel?.OriginalText</textarea>
-            @Model.FromTransliteration?.Text
+            <div class="translit">@Model.FromTransliteration?.Text</div>
             <span class="text-danger" data-valmsg-for="original-text" data-valmsg-replace="true"></span>
         </div>
     </div>
@@ -83,14 +83,14 @@
         </select>
         <div class="mb-3">
             <textarea disabled readonly class="form-control" id="translation-textarea" rows="3">@(Model.Items?.FirstOrDefault()?.Translations?.FirstOrDefault()?.Text)</textarea>
-            @Model.ToTransliteration?.Text
+            <div class="translit">@Model.ToTransliteration?.Text</div>
         </div>
 
     </div>
 </form>
 
-
-@ViewData["result"]
+@* 
+@ViewData["result"] *@
 
 
 

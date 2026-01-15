@@ -41,7 +41,6 @@ namespace AzureP33.Controllers
             {
                 PageTitle = "Перекладач",
                 FormModel = formModel?.Action == null ? null : formModel,
-                //LanguagesResponse = resp,
             };
             if (formModel?.Action == "translate")
             {
@@ -93,22 +92,26 @@ namespace AzureP33.Controllers
                     });
                     string result = await RequestApi(query, requestBody, ApiMode.Transliterate);
                     viewModel.FromTransliteration = JsonSerializer.Deserialize<List<TransliteratorResponseItem>>(result)![0];
-
+                }
+                catch (Exception ex)
+                {
+                    ViewData["transliterationResult"] = $"Error: {ex.Message}";
+                }
+                try
+                {
                     langData = resp.Transliterations[formModel!.LangTo];
-                    fromScript = langData.Scripts![0].Code!;
-                    toScript = langData.Scripts![0].ToScripts![0].Code!;
-                    query = $"language={formModel.LangFrom}&fromScript={fromScript}&toScript={toScript}";
-                    requestBody = JsonSerializer.Serialize(new object[]
+                    string fromScript = langData.Scripts![0].Code!;
+                    string toScript = langData.Scripts![0].ToScripts![0].Code!;
+                    string query = $"language={formModel.LangTo}&fromScript={fromScript}&toScript={toScript}";
+                    var requestBody = JsonSerializer.Serialize(new object[]
                     {
                         new
                         {
-                            Text = formModel.OriginalText
+                            Text = viewModel.Items[0].Translations[0].Text
                         }
                     });
-                    result = await RequestApi(query, requestBody, ApiMode.Transliterate);
+                    string result = await RequestApi(query, requestBody, ApiMode.Transliterate);
                     viewModel.ToTransliteration = JsonSerializer.Deserialize<List<TransliteratorResponseItem>>(result)![0];
-
-
                 }
                 catch (Exception ex)
                 {
