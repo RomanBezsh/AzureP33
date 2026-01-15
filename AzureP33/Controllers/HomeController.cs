@@ -146,15 +146,23 @@ namespace AzureP33.Controllers
                 return Json($"Action '{formModel.Action}' unsupported");
             }
 
-            string query = $"from={formModel.LangFrom}&to={formModel.LangTo}";
-            string textToTranslate = formModel.OriginalText;
-            object[] body = new object[] { new { Text = textToTranslate } };
-            var requestBody = JsonSerializer.Serialize(body);
+            if (string.IsNullOrWhiteSpace(formModel.OriginalText))
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return Json($"OriginalText is empty");
+            }
+             
+            try
+            {
+                return Json(await RequestTranslationAsync(formModel));
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = StatusCodes.Status500InternalServerError;
+                return Json($"InternalServerError");
+            }
 
 
-            
-
-            return Json(await RequestTranslationAsync(formModel));
 
         }
 
@@ -182,7 +190,9 @@ namespace AzureP33.Controllers
             object[] body = new object[] { new { Text = textToTranslate } };
             var requestBody = JsonSerializer.Serialize(body);
 
-            return await RequestApi(query, requestBody, ApiMode.Translate);
+
+            string translation = await RequestTranslationAsync(formModel);
+            return JsonSerializer.Deserialize<List<TranslatorResponseItem>>(translation)![0].Translations[0].Text;
         }
 
         private async Task<string> RequestApi(string query, string body, ApiMode apiMode)

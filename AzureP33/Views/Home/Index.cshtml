@@ -64,7 +64,7 @@
         <label for="translation-textarea" class="form-label">Результат перекладу</label>
         <select id="lang-to" class="form-select" aria-label="Мова перекладу" name="lang-to">
             @{
-                string langToSelectedKey = Model.FormModel?.LangTo ?? "ar";
+                string langToSelectedKey = Model.FormModel?.LangTo ?? "uk";
             }
             @foreach (var item in new Dictionary<string, LangData>(Model.LanguagesResponse.Translations))
             {
