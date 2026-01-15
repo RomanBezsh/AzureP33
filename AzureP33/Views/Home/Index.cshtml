@@ -17,7 +17,7 @@
         <label for="source-textarea" class="form-label">Текст, що буде перекладвтися</label>
         <select id="lang-from" class="form-select" aria-label="Мова орігінала" name="lang-from">
             @{
-                string langFromSelectedKey = Model.FormModel?.LangFrom ?? "uk";
+                string langFromSelectedKey = Model.FormModel?.LangFrom ?? "en";
             }
             @foreach (var item in Model.LanguagesResponse!.Translations)
             {

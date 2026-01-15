@@ -124,10 +124,38 @@ namespace AzureP33.Controllers
             return View(viewModel);
         }
 
-        public async Task<JsonResult> FetchTranslationAsync(HomeIndexFormModel? formModel)
+        [HttpGet]
+        public async Task<JsonResult> FetchTranslationAsync(HomeIndexFormModel formModel)
         {
+            LanguagesResponse resp = await GetLanguagesAsync();
+            if (! resp.Translations.ContainsKey(formModel.LangFrom))
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return Json($"LangFrom '{formModel.LangFrom}' unsupported");
+            }
 
-            return Json(formModel);
+            if (!resp.Translations.ContainsKey(formModel.LangTo))
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return Json($"LangTo '{formModel.LangTo}' unsupported");
+            }
+
+            if (formModel.Action != "fetch")
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return Json($"Action '{formModel.Action}' unsupported");
+            }
+
+            string query = $"from={formModel.LangFrom}&to={formModel.LangTo}";
+            string textToTranslate = formModel.OriginalText;
+            object[] body = new object[] { new { Text = textToTranslate } };
+            var requestBody = JsonSerializer.Serialize(body);
+
+
+            
+
+            return Json(await RequestTranslationAsync(formModel));
+
         }
 
         private async Task<LanguagesResponse> GetLanguagesAsync()
@@ -146,6 +174,17 @@ namespace AzureP33.Controllers
             }
             return _languagesResponse;
         }
+
+        private async Task<string> RequestTranslationAsync(HomeIndexFormModel formModel)
+        {
+            string query = $"from={formModel.LangFrom}&to={formModel.LangTo}";
+            string textToTranslate = formModel.OriginalText;
+            object[] body = new object[] { new { Text = textToTranslate } };
+            var requestBody = JsonSerializer.Serialize(body);
+
+            return await RequestApi(query, requestBody, ApiMode.Translate);
+        }
+
         private async Task<string> RequestApi(string query, string body, ApiMode apiMode)
         {
             var sec = _configuration.GetSection("Azure").GetSection("Translator") ?? throw new InvalidOperationException("Connection error");

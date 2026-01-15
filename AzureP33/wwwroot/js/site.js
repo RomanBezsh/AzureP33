@@ -20,8 +20,10 @@ document.addEventListener("selectionchange", () => {
 const translate = (fragment) => {
     fragment = fragment.trim();
     if (fragment.length > 0) {
-        //console.log("Translated: ", fragment);
-        fetch(`/Home/FetchTranslation?lang-from=en&lang-to=uk&original-text=${fragment}&action-button=fetch`)
+        const langFrom = document.getElementsByName("lang-from")[0].value;
+        const langTo = document.getElementsByName("lang-to")[0].value;
+        console.log("Translated: ", fragment);
+        fetch(`/Home/FetchTranslation?lang-from=${langFrom}&lang-to=${langTo}&original-text=${fragment}&action-button=fetch`)
             .then(r => r.json())
             .then(j => {
                 console.log(j);
