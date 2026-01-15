@@ -124,8 +124,11 @@ namespace AzureP33.Controllers
             return View(viewModel);
         }
 
+        public async Task<JsonResult> FetchTranslationAsync(HomeIndexFormModel? formModel)
+        {
 
-
+            return Json(formModel);
+        }
 
         private async Task<LanguagesResponse> GetLanguagesAsync()
         {

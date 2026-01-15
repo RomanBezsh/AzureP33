@@ -2,6 +2,37 @@
 // for details on configuring this project to bundle and minify static web assets.
 
 // Write your JavaScript code.
+
+window.translationTask = 0;
+
+document.addEventListener("selectionchange", () => {
+    const fragment = document.getSelection().toString();
+    console.log(document.getSelection().toString())
+    if (window.translationTask != 0) {
+        clearTimeout(window.translationTask);
+    }
+    window.translationTask = setTimeout(
+        () => translate(fragment),
+        1000
+    );
+});
+
+const translate = (fragment) => {
+    fragment = fragment.trim();
+    if (fragment.length > 0) {
+        //console.log("Translated: ", fragment);
+        fetch(`/Home/FetchTranslation?lang-from=en&lang-to=uk&original-text=${fragment}&action-button=fetch`)
+            .then(r => r.json())
+            .then(j => {
+                console.log(j);
+            });
+    }
+    window.translationTask = 0;
+}
+
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const btnSwap = document.getElementById("btn-swap-languages");
@@ -37,5 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         form.requestSubmit(submitBtn);
     });
+
 });
 
