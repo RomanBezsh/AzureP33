@@ -1,17 +1,15 @@
 ﻿using AzureP33.Models;
+using AzureP33.Models.Cosmos;
 using AzureP33.Models.Home;
 using AzureP33.Models.Orm;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Data;
+using Microsoft.Azure.Cosmos;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Xml.Linq;
-using static System.Net.WebRequestMethods;
+using Container = Microsoft.Azure.Cosmos.Container;
+
 namespace AzureP33.Controllers
 {
     public class HomeController : Controller
@@ -224,7 +222,49 @@ namespace AzureP33.Controllers
             }
         }
 
+        public async Task<IActionResult> CosmosAsync()
+        {
+            CosmosClient client = new(
+                connectionString: "https://azure-cosmos-p33-od-2.documents.azure.com:443/"
+            );
+            Database database = client.GetDatabase("SampleDB");
+            database = await database.ReadAsync();
 
+            Container container = database.GetContainer("SampleContainer");
+            container = await container.ReadContainerAsync();
+
+            var query = new QueryDefinition(
+                query: "SELECT * FROM c WHERE c.categoryId = @category"
+            ).WithParameter("@category", "26C74104-40BC-4541-8EF5-9892F7F03D72");
+
+            using FeedIterator<Product> feed = container.GetItemQueryIterator<Product>(
+                queryDefinition: query
+            );
+
+            List<Product> items = new();
+            double requestCharge = 0d;
+            while (feed.HasMoreResults)
+            {
+                FeedResponse<Product> response = await feed.ReadNextAsync();
+                foreach (Product item in response)
+                {
+                    items.Add(item);
+                }
+                requestCharge += response.RequestCharge;
+            }
+
+            return View(new HomeCosmosViewModel
+            {
+                Products = items,
+                RequestCharge = requestCharge,
+            });
+            /*
+             * Д.З. Виконати код підключення до БД з домашніх ПК,
+             * дослідити можливість встановлення з'єднання та 
+             * вибірки даних.
+             * Прикласти посилання на сторінку вашого сайту.
+             */
+        }
 
         public IActionResult Privacy()
         {
