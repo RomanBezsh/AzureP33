@@ -224,13 +224,17 @@ namespace AzureP33.Controllers
 
         public async Task<IActionResult> CosmosAsync()
         {
+            IConfiguration? sec = _configuration.GetSection("Azure")?.GetSection("CosmosDB");
+            string connectionString = sec.GetValue<string>("ConnectionString") ?? throw new NullReferenceException("Configuration error: 'ConnectionString' is null");
+            string databaseId = sec.GetValue<string>("DatabaseId") ?? throw new NullReferenceException("Configuration error: 'DatabaseId' is null");
+            string conteinerId = sec.GetValue<string>("ConteinerId") ?? throw new NullReferenceException("Configuration error: 'ConnectionString' is null");
             CosmosClient client = new(
-                connectionString: "https://azure-cosmos-p33-od-2.documents.azure.com:443/"
+                connectionString: connectionString
             );
-            Database database = client.GetDatabase("SampleDB");
+            Database database = client.GetDatabase(databaseId);
             database = await database.ReadAsync();
 
-            Container container = database.GetContainer("SampleContainer");
+            Container container = database.GetContainer(conteinerId);
             container = await container.ReadContainerAsync();
 
             var query = new QueryDefinition(
