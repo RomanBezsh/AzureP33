@@ -2,6 +2,7 @@
 using AzureP33.Models.Cosmos;
 using AzureP33.Models.Home;
 using AzureP33.Models.Orm;
+using AzureP33.Services.CosmosDB;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using System.ComponentModel;
@@ -16,12 +17,17 @@ namespace AzureP33.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly ICosmosDBService _cosmosDBService;
         private static LanguagesResponse? _languagesResponse;
         
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
+        public HomeController(
+            ILogger<HomeController> logger,
+            IConfiguration configuration,
+            ICosmosDBService cosmosDBService)
         {
             _logger = logger;
             _configuration = configuration;
+            _cosmosDBService = cosmosDBService;
         }
 
         public async Task<IActionResult> IndexAsync(HomeIndexFormModel? formModel)
@@ -224,20 +230,10 @@ namespace AzureP33.Controllers
 
         public async Task<IActionResult> CosmosAsync()
         {
-            IConfiguration? sec = _configuration.GetSection("Azure")?.GetSection("CosmosDB");
-            string connectionString = sec.GetValue<string>("ConnectionString") ?? throw new NullReferenceException("Configuration error: 'ConnectionString' is null");
-            string databaseId = sec.GetValue<string>("DatabaseId") ?? throw new NullReferenceException("Configuration error: 'DatabaseId' is null");
-            string conteinerId = sec.GetValue<string>("ConteinerId") ?? throw new NullReferenceException("Configuration error: 'ConnectionString' is null");
-            CosmosClient client = new(
-                connectionString: connectionString
-            );
-            Database database = client.GetDatabase(databaseId);
-            database = await database.ReadAsync();
 
-            Container container = database.GetContainer(conteinerId);
-            container = await container.ReadContainerAsync();
+            Container container = await _cosmosDBService.GetConteinerAsync();
 
-            var query = new QueryDefinition(
+            QueryDefinition query = new QueryDefinition(
                 query: "SELECT * FROM c WHERE c.categoryId = @category"
             ).WithParameter("@category", "26C74104-40BC-4541-8EF5-9892F7F03D72");
 
@@ -246,7 +242,7 @@ namespace AzureP33.Controllers
             );
 
             List<Product> items = new();
-            double requestCharge = 0d;
+            double requestCharge = 0;
             while (feed.HasMoreResults)
             {
                 FeedResponse<Product> response = await feed.ReadNextAsync();

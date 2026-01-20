@@ -1,7 +1,10 @@
+using AzureP33.Services.CosmosDB;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddCosmosDb();
 builder.Configuration.AddJsonFile("azuresettings.json", false);
 var app = builder.Build();
 

@@ -2,16 +2,16 @@
   "Azure": {
     "Translator": {
       "Endpoint": "https://api.cognitive.microsofttranslator.com",
-      "Key": "4hkkQlne0oqLGd93L9f7tsj9dwWEjUaUgAb4AxlU0Q2HdujSzBCJJQQJ99BLACMsfrFXJ3w3AAAbACOG1EhL",
-      "Location": "westus3",
+      "Key": "** CHANGE ME **",
+      "Location": "** CHANGE ME **",
       "TranslatorPath": "/translate",
       "TransliteratorPath": "/transliterate",
       "ApiVersion": "3.0"
     },
     "Cosmos": {
       "ConnectionString": "https://azure-cosmos-p33-od-2.documents.azure.com:443/",
-      "DatabaseId": "SampleDB",
-      "ConteinerId": "SampleContainer"
+      "DatabaseId": "** CHANGE ME **",
+      "ConteinerId": "** CHANGE ME **"
     }
 
   }
