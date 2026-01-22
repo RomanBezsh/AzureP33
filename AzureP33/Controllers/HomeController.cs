@@ -46,6 +46,7 @@ namespace AzureP33.Controllers
                 PageTitle = "Перекладач",
                 FormModel = formModel?.Action == null ? null : formModel,
             };
+            Models.Cosmos.Translation translation;
             if (formModel?.Action == "translate")
             {
 
@@ -59,16 +60,14 @@ namespace AzureP33.Controllers
                 if (!string.IsNullOrWhiteSpace(result) && result.TrimStart().StartsWith("["))
                 {
                     viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponseItem>>(result);
+                    translation.From.Text = formModel.OriginalText;
                 }
                 else
                 {
                     viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
 
                 }
-                ViewData["result"] = result;
-
-            }
-            ;
+            };
 
             if (respTask == null)
             {
@@ -165,9 +164,6 @@ namespace AzureP33.Controllers
                 Response.StatusCode = StatusCodes.Status500InternalServerError;
                 return Json($"InternalServerError: {ex}");
             }
-
-
-
         }
 
         private async Task<LanguagesResponse> GetLanguagesAsync()
@@ -195,7 +191,7 @@ namespace AzureP33.Controllers
             var requestBody = JsonSerializer.Serialize(body);
 
 
-            string translation = await RequestTranslationAsync(formModel);
+            string translation = await RequestApi(query, requestBody, ApiMode.Translate);
             return JsonSerializer.Deserialize<List<TranslatorResponseItem>>(translation)![0].Translations[0].Text;
         }
 
@@ -273,6 +269,53 @@ namespace AzureP33.Controllers
                 SelectedCategoryIds = idsToQuery
             });
         }
+
+        public async Task<IActionResult> CosmosAddAsync([FromForm] HomeCosmosAddFormModel? formModel)
+        {
+            if (formModel?.Action == "Create")
+            {
+                if(string.IsNullOrEmpty(formModel.Name) || string.IsNullOrEmpty(formModel.Name))
+                {
+                    ViewData["result"] = "Поля не заповненні";
+                }
+                else
+                {
+                    Container container = await _cosmosDBService.GetConteinerAsync();
+                    Models.Cosmos.User user = new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = formModel.Name,
+                        Email = formModel.Email,
+                    };
+                    ItemResponse<Models.Cosmos.User> response = await container.UpsertItemAsync<Models.Cosmos.User>(
+                        item: user,
+                        partitionKey: new PartitionKey(Models.Cosmos.User.PartitionKey)
+                    );
+                    ViewData["result"] = $"Upserted item:\t{response.Resource}\n" +
+                        $"Status code:\t{response.StatusCode}\n" +
+                        $"Request charge:\t{response.RequestCharge:0.00}";
+                }
+            }
+            return View();
+        }
+
+
+
+
+        private async Task SaveTranslation(Models.Cosmos.Translation translation)
+        {
+            Container container = await _cosmosDBService.GetConteinerAsync();
+            Models.Cosmos.Translation newTranslation = new()
+            {
+                
+            };
+            ItemResponse<Models.Cosmos.Translation> response = await container.UpsertItemAsync<Models.Cosmos.Translation>(
+                item: newTranslation,
+                partitionKey: new PartitionKey(Models.Cosmos.Translation.PartitionKey)
+            );
+        }
+
+
 
         public IActionResult Privacy()
         {

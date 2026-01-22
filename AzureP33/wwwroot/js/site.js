@@ -5,16 +5,21 @@
 
 window.translationTask = 0;
 
+
+
 document.addEventListener("selectionchange", () => {
-    const fragment = document.getSelection().toString();
-    console.log(document.getSelection().toString())
-    if (window.translationTask != 0) {
-        clearTimeout(window.translationTask);
+    let isChecked = document.getElementById("checkbox-selectionchange").checked;
+    if (isChecked) {
+        const fragment = document.getSelection().toString();
+        console.log(document.getSelection().toString())
+        if (window.translationTask != 0) {
+            clearTimeout(window.translationTask);
+        }
+        window.translationTask = setTimeout(
+            () => translate(fragment),
+            1000
+        );
     }
-    window.translationTask = setTimeout(
-        () => translate(fragment),
-        1000
-    );
 });
 
 const translate = (fragment) => {

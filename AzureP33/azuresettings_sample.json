@@ -8,13 +8,11 @@
       "TransliteratorPath": "/transliterate",
       "ApiVersion": "3.0"
     },
-    "Cosmos": {
-      "ConnectionString": "https://azure-cosmos-p33-od-2.documents.azure.com:443/",
+    "CosmosDB": {
+      "ConnectionString": "** CHANGE ME **",
       "DatabaseId": "** CHANGE ME **",
       "ConteinerId": "** CHANGE ME **"
     }
-
   }
-
 }
 

@@ -12,6 +12,9 @@
 
 
 <a asp-action="Cosmos">Cosmos</a>
+<a asp-action="CosmosAdd">Cosmos Add</a>
+
+
 
 <form class="d-flex" method="get">
     <div class="flex-grow-1"></div>
@@ -104,6 +107,9 @@
         @Model.ErrorResponse.Error.Message (@Model.ErrorResponse.Error.Code)
     </div>
 }
+
+<input type="checkbox" id="checkbox-selectionchange" checked />
+<p>Переклад виділеного тексту</p>
 
 <h2>English</h2>
 <p>Microsoft Azure, sometimes stylized Azure, and formerly Windows Azure, is the cloud computing platform developed by Microsoft. It offers management, access and development of applications and services to individuals, companies, and governments through its global infrastructure. It also provides capabilities that are usually not included within other cloud platforms, including software as a service (SaaS), platform as a service (PaaS), and infrastructure as a service (IaaS). Microsoft Azure supports many programming languages, tools, and frameworks, including Microsoft-specific and third-party software and systems.</p>
