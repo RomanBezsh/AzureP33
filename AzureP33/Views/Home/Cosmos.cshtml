@@ -7,11 +7,22 @@
     <h1 class="display-4">Хмарні технології і використання Microsoft Azure під час розробки додатків</h1>
 </div>
 
-<h2 class="display-5">
-    CosmosDB
-</h2>
+<h2 class="display-5">CosmosDB</h2>
 
-@Model.RequestCharge
+<form method="get">
+    <label for="categoryIds">Оберіть категорії:</label>
+    <select id="categoryIds" name="selectedCategoryIds" multiple class="form-select">
+        @foreach (var id in Model.CategoryIds)
+        {
+            <option value="@id" selected="@(Model.SelectedCategoryIds != null && Model.SelectedCategoryIds.Contains(id) ? "selected" : null)">
+                @id
+            </option>
+        }
+    </select>
+    <button type="submit" class="btn btn-primary mt-2">Завантажити</button>
+</form>
+
+<p>Request Charge: @Model.RequestCharge</p>
 
 @foreach(var p in Model.Products)
 {

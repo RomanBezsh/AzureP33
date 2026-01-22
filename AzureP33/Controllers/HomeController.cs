@@ -163,7 +163,7 @@ namespace AzureP33.Controllers
             catch (Exception ex)
             {
                 Response.StatusCode = StatusCodes.Status500InternalServerError;
-                return Json($"InternalServerError");
+                return Json($"InternalServerError: {ex}");
             }
 
 
@@ -228,42 +228,50 @@ namespace AzureP33.Controllers
             }
         }
 
-        public async Task<IActionResult> CosmosAsync()
+        public async Task<IActionResult> CosmosAsync(List<string>? selectedCategoryIds)
         {
-
             Container container = await _cosmosDBService.GetConteinerAsync();
 
-            QueryDefinition query = new QueryDefinition(
-                query: "SELECT * FROM c WHERE c.categoryId = @category"
-            ).WithParameter("@category", "26C74104-40BC-4541-8EF5-9892F7F03D72");
-
-            using FeedIterator<Product> feed = container.GetItemQueryIterator<Product>(
-                queryDefinition: query
-            );
-
-            List<Product> items = new();
-            double requestCharge = 0;
-            while (feed.HasMoreResults)
+            var categoryQuery = new QueryDefinition("SELECT DISTINCT c.categoryId FROM c");
+            var categoryIds = new List<string>();
+            using (FeedIterator<dynamic> feed = container.GetItemQueryIterator<dynamic>(categoryQuery))
             {
-                FeedResponse<Product> response = await feed.ReadNextAsync();
-                foreach (Product item in response)
+                while (feed.HasMoreResults)
                 {
-                    items.Add(item);
+                    var response = await feed.ReadNextAsync();
+                    foreach (var item in response)
+                    {
+                        categoryIds.Add((string)item.categoryId);
+                    }
                 }
-                requestCharge += response.RequestCharge;
+            }
+
+            var idsToQuery = (selectedCategoryIds != null && selectedCategoryIds.Any())
+                ? selectedCategoryIds
+                : categoryIds;
+
+            var queryText = "SELECT * FROM c WHERE ARRAY_CONTAINS(@categories, c.categoryId)";
+            var query = new QueryDefinition(queryText).WithParameter("@categories", idsToQuery);
+
+            var items = new List<Product>();
+            double requestCharge = 0;
+            using (FeedIterator<Product> feed = container.GetItemQueryIterator<Product>(query))
+            {
+                while (feed.HasMoreResults)
+                {
+                    var response = await feed.ReadNextAsync();
+                    items.AddRange(response);
+                    requestCharge += response.RequestCharge;
+                }
             }
 
             return View(new HomeCosmosViewModel
             {
                 Products = items,
                 RequestCharge = requestCharge,
+                CategoryIds = categoryIds,
+                SelectedCategoryIds = idsToQuery
             });
-            /*
-             * Д.З. Виконати код підключення до БД з домашніх ПК,
-             * дослідити можливість встановлення з'єднання та 
-             * вибірки даних.
-             * Прикласти посилання на сторінку вашого сайту.
-             */
         }
 
         public IActionResult Privacy()
