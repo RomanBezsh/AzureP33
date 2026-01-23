@@ -5,6 +5,7 @@ using AzureP33.Models.Orm;
 using AzureP33.Services.CosmosDB;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
@@ -46,28 +47,24 @@ namespace AzureP33.Controllers
                 PageTitle = "Перекладач",
                 FormModel = formModel?.Action == null ? null : formModel,
             };
-            Models.Cosmos.Translation translation;
+
             if (formModel?.Action == "translate")
             {
-
                 string query = $"from={formModel.LangFrom}&to={formModel.LangTo}";
                 string textToTranslate = formModel.OriginalText;
                 object[] body = new object[] { new { Text = textToTranslate } };
                 var requestBody = JsonSerializer.Serialize(body);
 
-
                 string result = await RequestApi(query, requestBody, ApiMode.Translate);
                 if (!string.IsNullOrWhiteSpace(result) && result.TrimStart().StartsWith("["))
                 {
                     viewModel.Items = JsonSerializer.Deserialize<List<TranslatorResponseItem>>(result);
-                    translation.From.Text = formModel.OriginalText;
                 }
                 else
                 {
                     viewModel.ErrorResponse = JsonSerializer.Deserialize<TranslatorErrorResponse>(result);
-
                 }
-            };
+            }
 
             if (respTask == null)
             {
@@ -88,10 +85,10 @@ namespace AzureP33.Controllers
                     string query = $"language={formModel.LangFrom}&fromScript={fromScript}&toScript={toScript}";
                     var requestBody = JsonSerializer.Serialize(new object[]
                     {
-                        new
-                        {
-                            Text = formModel.OriginalText
-                        }
+                new
+                {
+                    Text = formModel.OriginalText
+                }
                     });
                     string result = await RequestApi(query, requestBody, ApiMode.Transliterate);
                     viewModel.FromTransliteration = JsonSerializer.Deserialize<List<TransliteratorResponseItem>>(result)![0];
@@ -108,10 +105,10 @@ namespace AzureP33.Controllers
                     string query = $"language={formModel.LangTo}&fromScript={fromScript}&toScript={toScript}";
                     var requestBody = JsonSerializer.Serialize(new object[]
                     {
-                        new
-                        {
-                            Text = viewModel.Items[0].Translations[0].Text
-                        }
+                new
+                {
+                    Text = viewModel.Items[0].Translations[0].Text
+                }
                     });
                     string result = await RequestApi(query, requestBody, ApiMode.Transliterate);
                     viewModel.ToTransliteration = JsonSerializer.Deserialize<List<TransliteratorResponseItem>>(result)![0];
@@ -122,6 +119,68 @@ namespace AzureP33.Controllers
                 }
             }
 
+            if (formModel?.Action == "translate" && viewModel.Items != null)
+            {
+                var fromTranslit = viewModel.FromTransliteration;
+                var toTranslit = viewModel.ToTransliteration;
+                var translationItem = viewModel.Items[0].Translations[0];
+
+                var translation = new Models.Cosmos.Translation
+                {
+                    UserId = null, 
+                    From = new Block
+                    {
+                        Text = formModel.OriginalText,
+                        Language = formModel.LangFrom,
+                        Transliteration = fromTranslit != null
+                            ? new TransliterationInfo
+                            {
+                                FromScript = fromTranslit.Script,
+                                ToScript = fromTranslit.Script,
+                                Result = fromTranslit.Text
+                            }
+                            : null
+                    },
+                    To = new Block
+                    {
+                        Text = translationItem.Text,
+                        Language = formModel.LangTo,
+                        Transliteration = toTranslit != null
+                            ? new TransliterationInfo
+                            {
+                                FromScript = toTranslit.Script,
+                                ToScript = toTranslit.Script,
+                                Result = toTranslit.Text
+                            }
+                            : null
+                    }
+                };
+                await SaveTranslation(translation);
+            }
+            var cosmosTranslations = await LoadTranslationHistoryAsync();
+            viewModel.TranslationHistory = cosmosTranslations
+                .Where(t => t.From != null && t.To != null)
+                .Select(t => new AzureP33.Models.Cosmos.Translation
+                {
+                    Id = t.Id,
+                    UserId = t.UserId,
+                    Timestamp = t.Timestamp, 
+
+                    From = new AzureP33.Models.Cosmos.Block
+                    {
+                        Text = t.From.Text,
+                        Language = t.From.Language,
+                        Transliteration = t.From.Transliteration
+                    },
+
+                    To = new AzureP33.Models.Cosmos.Block
+                    {
+                        Text = t.To.Text,
+                        Language = t.To.Language,
+                        Transliteration = t.To.Transliteration
+                    }
+                })
+                .ToList();
 
             viewModel.LanguagesResponse = await respTask;
             return View(viewModel);
@@ -305,17 +364,31 @@ namespace AzureP33.Controllers
         private async Task SaveTranslation(Models.Cosmos.Translation translation)
         {
             Container container = await _cosmosDBService.GetConteinerAsync();
-            Models.Cosmos.Translation newTranslation = new()
-            {
-                
-            };
-            ItemResponse<Models.Cosmos.Translation> response = await container.UpsertItemAsync<Models.Cosmos.Translation>(
-                item: newTranslation,
+            translation.Id = Guid.NewGuid();
+            translation.Timestamp = DateTime.UtcNow;
+            await container.UpsertItemAsync(
+                item: translation,
                 partitionKey: new PartitionKey(Models.Cosmos.Translation.PartitionKey)
             );
         }
 
-
+        private async Task<List<Models.Cosmos.Translation>> LoadTranslationHistoryAsync(int? userId = null)
+        {
+            Container container = await _cosmosDBService.GetConteinerAsync();
+            var query = userId.HasValue
+                ? new QueryDefinition("SELECT * FROM c WHERE c.userID = @userId").WithParameter("@userId", userId)
+                : new QueryDefinition("SELECT * FROM c");
+            var items = new List<Models.Cosmos.Translation>();
+            using (FeedIterator<Models.Cosmos.Translation> feed = container.GetItemQueryIterator<Models.Cosmos.Translation>(query))
+            {
+                while (feed.HasMoreResults)
+                {
+                    var response = await feed.ReadNextAsync();
+                    items.AddRange(response);
+                }
+            }
+            return items;
+        }
 
         public IActionResult Privacy()
         {

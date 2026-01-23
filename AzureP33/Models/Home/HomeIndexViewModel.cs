@@ -10,9 +10,9 @@ namespace AzureP33.Models.Home
         public TranslatorErrorResponse? ErrorResponse { get; set; }
         public List<TranslatorResponseItem>? Items { get; set; }
         public TransliteratorResponseItem? FromTransliteration { get; set; } 
-        public TransliteratorResponseItem? ToTransliteration { get; set; } 
+        public TransliteratorResponseItem? ToTransliteration { get; set; }
 
-
+        public List<AzureP33.Models.Cosmos.Translation>? TranslationHistory { get; set; }
     }
 }
 

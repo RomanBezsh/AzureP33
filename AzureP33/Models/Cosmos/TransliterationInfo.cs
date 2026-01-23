@@ -1,6 +1,6 @@
 ﻿namespace AzureP33.Models.Cosmos
 {
-    public class Transliteration
+    public class TransliterationInfo
     {
         public string FromScript { get; set; }
         public string ToScript { get; set; }

@@ -138,6 +138,54 @@
         Складаємо
     </li>
 </ul>
+@if (Model.TranslationHistory != null)
+{
+    <h3>Історія перекладів</h3>
+    <ul>
+        @foreach (var item in Model.TranslationHistory)
+        {
+            <li>
+                <b>@item.Timestamp</b>
+                @if (item.UserId != null)
+                {
+                    <span> | UserId: @item.UserId</span>
+                }
+
+                <br />
+
+                <b>@item.From.Language</b>:
+                "@item.From.Text"
+
+                @if (item.From.Transliteration != null)
+                {
+                    <div>
+                        Трансліт:
+                        "@item.From.Transliteration.Result"
+                        (@item.From.Transliteration.FromScript →
+                        @item.From.Transliteration.ToScript)
+                    </div>
+                }
+
+                <br />→<br />
+
+                <b>@item.To.Language</b>:
+                "@item.To.Text"
+
+                @if (item.To.Transliteration != null)
+                {
+                    <div>
+                        Трансліт:
+                        "@item.To.Transliteration.Result"
+                        (@item.To.Transliteration.FromScript →
+                        @item.To.Transliteration.ToScript)
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}
+
+
 
 @section Scripts {
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
